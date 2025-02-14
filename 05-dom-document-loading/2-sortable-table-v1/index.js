@@ -2,6 +2,7 @@ import { template } from "@babel/core";
 
 export default class SortableTable {
   element;
+  subElements = {};
 
   constructor( // do we need to define defaul objects in arrays or is it ehough just empty {}
     headerConfig = [
@@ -25,6 +26,7 @@ export default class SortableTable {
     this.headerConfig = headerConfig;
     this.data = data;
     this.element = this.createElement(this.createTemplate());
+    this.selectSubElements();
   }
 
   createElement(template) {
@@ -32,6 +34,13 @@ export default class SortableTable {
     elem.innerHTML = template;
     // console.log(elem.firstElementChild.outerHTML);
     return elem.firstElementChild;
+  }
+
+
+  selectSubElements() {
+    this.element.querySelectorAll('[data-element]').forEach(element => {
+      this.subElements[element.dataset.element] = element;
+    });
   }
 
   createHeaderTemplate() {
@@ -62,7 +71,7 @@ export default class SortableTable {
       
       tableContent.push(`</a>`);
     }
-    console.log(tableContent.join(''));
+    // console.log(tableContent.join(''));
     return tableContent.join('');
 
     //  return this.data.map( (item) => this.headerConfig.map( i => ( ('template' in item) ?  i.template(item.images) :
@@ -88,11 +97,22 @@ export default class SortableTable {
 
   sort(fieldValue = "title", orderValue = "desc") {
 
-    this.data.sort((a,b) => (typeof(a.fieldValue) === "number") ? 
-       ( (( orderValue==="desc") ? a : b) - (( orderValue==="desc") ? b : a) ) : 
-       ((( orderValue==="desc") ? a : b).localeCompare((( orderValue==="desc") ? b : a), ["ru-RU","en-US"], { caseFirst: "upper" }))
-    );
+    const valType = this.headerConfig.find(a => (a.id === fieldValue))?.sortType;
+    console.log(`ValTYPE = ${valType}`);
 
+    this.data.sort( function(a, b) {
+
+      if ( valType === "number" ) return ((orderValue === "asc") ? b - a : a - b);
+
+      // if ( valType === "string" ) {
+
+      //   if ( orderValue === "asc" ) return a.localeCompare(b, ["ru-RU","en-US"], { caseFirst: "upper" });
+
+      //   if ( orderValue === "desc" ) return b.localeCompare(a, ["ru-RU","en-US"], { caseFirst: "upper" });
+      
+      // }
+
+    })
   }
 
   remove() {
